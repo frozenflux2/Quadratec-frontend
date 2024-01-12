@@ -4,7 +4,7 @@ import type { INavItem } from '@constants/basic'
 import { Link, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import useScroll from '@hooks/useScroll'
-import LOGO from '@assets/logo.svg'
+import LOGO from '@assets/logo.png'
 
 const NavItems: INavItem[] = [
     {
@@ -44,15 +44,15 @@ const Header = () => {
         <Navbar
             className={`fixed top-0 z-10 max-w-full px-0 py-4 text-black rounded-none h-max border-none transition-all duration-300 ${
                 scrollY > 1
-                    ? 'shadow-md backdrop-blur-md bg-[#004225]'
-                    : 'shadow-none backdrop-filter-none bg-[#004225]'
+                    ? 'shadow-md backdrop-blur-md bg-gradient-to-r from-white/0 to-white/30'
+                    : 'shadow-md backdrop-filter-none bg-transparent'
             }`}
         >
             <div className="flex items-center justify-between gap-4 px-6 mx-auto max-w-7xl">
                 <Link to="/">
                     <img src={LOGO} alt="logo" className="h-10" />
                 </Link>
-                <div className="flex items-center justify-between gap-4 lg:gap-8 text-white">
+                <div className="flex items-center justify-between gap-4 text-black lg:gap-8">
                     <div className="hidden gap-4 md:flex">
                         {NavItems.map((item, key) => (
                             <Link
@@ -72,7 +72,7 @@ const Header = () => {
                     >
                         {openNav ? (
                             <XMarkIcon
-                                className="z-20 text-white"
+                                className="z-20 text-black"
                                 width="36px"
                                 height="36px"
                             />
@@ -91,7 +91,7 @@ const Header = () => {
                     <Link
                         to={item.link}
                         key={`nav-mobile-${key}`}
-                        className="text-2xl font-black text-white hover:text-gray-500"
+                        className="text-2xl font-black text-black hover:text-gray-700"
                     >
                         {item.label}
                     </Link>
