@@ -56,12 +56,14 @@ const Home = () => {
         { label: 'Quadratec', value: 'quadratec' },
     ]
     const [site, setSite] = useState<string | undefined>()
+    const [scraping, setScraping] = useState<string | undefined>()
 
     const handleStart = () => {
         fetch(`${API_SERVER_URL}/api/v1/${site}/start`)
             .then((res) => res.json())
             .then((data) => {
                 setIsScraping(true)
+                setScraping(site)
                 toast.success(data?.result)
             })
             .catch((err) => {
@@ -74,6 +76,7 @@ const Home = () => {
             .then((res) => res.json())
             .then((data) => {
                 setIsScraping(false)
+                setScraping(undefined)
                 toast.info(data?.result)
             })
             .catch((err) => {
@@ -86,6 +89,7 @@ const Home = () => {
             .then((res) => res.json())
             .then((data) => {
                 setIsScraping(false)
+                setScraping(undefined)
                 toast.info(data?.result)
             })
             .catch((err) => {
@@ -110,7 +114,10 @@ const Home = () => {
     useEffect(() => {
         fetch(`${API_SERVER_URL}/api/v1/utils/status`)
             .then((res) => res.json())
-            .then((data) => setIsScraping(data?.result))
+            .then((data) => {
+                setIsScraping(data?.result)
+                setScraping(data?.site)
+            })
             .catch(() => setIsScraping(false))
 
         const interval = setInterval(() => {
@@ -155,47 +162,54 @@ const Home = () => {
                 <TypewriterEffect words={words} />
             </div>
             <div className="flex flex-col max-w-5xl gap-12 mx-auto">
-                <div className="flex items-center gap-10">
-                    <div className="flex w-72">
-                        <Select
-                            variant="outlined"
-                            label="Select Site"
-                            onChange={(value) => {
-                                setSite(value)
-                            }}
-                            value={site}
-                        >
-                            {sites.map((el, id) => (
-                                <Option key={`site-${id}`} value={el.value}>
-                                    {el.label}
-                                </Option>
-                            ))}
-                        </Select>
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-10">
+                        <div className="flex w-72">
+                            <Select
+                                variant="outlined"
+                                label="Select Site"
+                                onChange={(value) => {
+                                    setSite(value)
+                                }}
+                                value={site}
+                            >
+                                {sites.map((el, id) => (
+                                    <Option key={`site-${id}`} value={el.value}>
+                                        {el.label}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                color="blue"
+                                loading={isScraping}
+                                onClick={handleStart}
+                                disabled={!site || isScraping}
+                            >
+                                Start
+                            </Button>
+                            <Button
+                                color="green"
+                                disabled={!isScraping}
+                                onClick={handlePause}
+                            >
+                                Pause
+                            </Button>
+                            <Button
+                                color="red"
+                                disabled={!isScraping}
+                                onClick={handleStop}
+                            >
+                                Stop
+                            </Button>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <Button
-                            color="blue"
-                            loading={isScraping}
-                            onClick={handleStart}
-                            disabled={!site || isScraping}
-                        >
-                            Start
-                        </Button>
-                        <Button
-                            color="green"
-                            disabled={!isScraping}
-                            onClick={handlePause}
-                        >
-                            Pause
-                        </Button>
-                        <Button
-                            color="red"
-                            disabled={!isScraping}
-                            onClick={handleStop}
-                        >
-                            Stop
-                        </Button>
-                    </div>
+                    {scraping && (
+                        <Typography variant="small" color="blue">
+                            <i>Scraping {scraping}</i>
+                        </Typography>
+                    )}
                 </div>
                 <div className="flex flex-col w-full gap-8">
                     <div>
