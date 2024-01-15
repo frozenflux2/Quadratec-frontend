@@ -7,11 +7,19 @@ import {
     Typography,
     Progress,
 } from '@material-tailwind/react'
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import { toast } from 'react-toastify'
+import { API_SERVER_URL } from '@/constants'
 
 interface IProgress {
     brands: number
     metadata: number
-    detail: number
+    details: number
+}
+
+interface ISite {
+    label: string
+    value: string
 }
 
 const Home = () => {
@@ -35,65 +43,103 @@ const Home = () => {
     ]
 
     const [isScraping, setIsScraping] = useState(false)
-    const [progress, setProgress] = useState<IProgress>({
+    const initialProgress: IProgress = {
         brands: 0,
         metadata: 0,
-        detail: 0,
-    })
-    const [totalCounts, setTotalCounts] = useState<IProgress>({
-        brands: 57,
-        metadata: 246,
-        detail: 361,
-    })
-    const sites = ['Polyperformance', 'Quadratec']
+        details: 0,
+    }
+    const [progress, setProgress] = useState<IProgress>(initialProgress)
+    const sites: ISite[] = [
+        { label: 'Polyperformance', value: 'polyperformance' },
+        { label: 'Quadratec', value: 'quadratec' },
+    ]
     const [site, setSite] = useState<string | undefined>()
 
-    const [intervalId, setIntervalId] = useState<number | null>(null)
-
     const handleStart = () => {
-        if (!site) return
-        setIsScraping(true)
-        setProgress({
-            brands: 0,
-            metadata: 0,
-            detail: 0,
-        })
-        if (!intervalId) {
-            const newIntervalId = setInterval(() => {
-                setProgress((prev) => {
-                    if (prev.brands < 100)
-                        return { ...prev, brands: prev.brands + 20 }
-                    if (prev.metadata < 100)
-                        return { ...prev, metadata: prev.metadata + 20 }
-                    if (prev.detail < 100)
-                        return { ...prev, detail: prev.detail + 20 }
-
-                    if (intervalId) clearInterval(intervalId)
-                    setIntervalId(null)
-                    setIsScraping(false)
-                    return prev
-                })
-            }, 1000)
-            setIntervalId(newIntervalId as unknown as number)
-        }
+        fetch(`${API_SERVER_URL}/api/v1/${site}/start`)
+            .then((res) => res.json())
+            .then((data) => {
+                setIsScraping(true)
+                toast.success(data?.result)
+            })
+            .catch((err) => {
+                console.error('start: ', err)
+                toast.error('Error occurred!!')
+            })
+    }
+    const handlePause = () => {
+        fetch(`${API_SERVER_URL}/api/v1/utils/pause`)
+            .then((res) => res.json())
+            .then((data) => {
+                setIsScraping(false)
+                toast.info(data?.result)
+            })
+            .catch((err) => {
+                console.error('pause: ', err)
+                toast.error('Error occurred!!')
+            })
+    }
+    const handleStop = () => {
+        fetch(`${API_SERVER_URL}/api/v1/utils/stop`)
+            .then((res) => res.json())
+            .then((data) => {
+                setIsScraping(false)
+                toast.info(data?.result)
+            })
+            .catch((err) => {
+                console.error('stop: ', err)
+                toast.error('Error occurred!!')
+            })
+    }
+    const handleDownload = () => {
+        fetch(`${API_SERVER_URL}/api/v1/${site}/download`)
+            .then((res) => res.blob())
+            .then((blob) => {
+                const url = window.URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                link.href = url
+                link.setAttribute('download', `${site}_output.zip`)
+                document.body.appendChild(link)
+                link.click()
+            })
+            .catch(() => toast.error("Can't download file!"))
     }
 
     useEffect(() => {
-        return () => {
-            if (intervalId) clearInterval(intervalId)
-        }
-    }, [intervalId])
+        fetch(`${API_SERVER_URL}/api/v1/utils/status`)
+            .then((res) => res.json())
+            .then((data) => setIsScraping(data?.result))
+            .catch(() => setIsScraping(false))
 
-    const handleStop = () => {
-        if (intervalId) clearInterval(intervalId)
-        setIntervalId(null)
-        setIsScraping(false)
-        setProgress({
-            brands: 0,
-            metadata: 0,
-            detail: 0,
-        })
-    }
+        const interval = setInterval(() => {
+            fetch(`${API_SERVER_URL}/api/v1/utils/status`)
+                .then((res) => res.json())
+                .then((data) => setIsScraping(data?.result))
+                .catch(() => setIsScraping(false))
+        }, 3000)
+
+        // eslint-disable-next-line consistent-return
+        return () => clearInterval(interval)
+    }, [])
+
+    useEffect(() => {
+        if (!site) return
+        fetch(`${API_SERVER_URL}/api/v1/${site}/progress`)
+            .then((res) => res.json())
+            .then((data) => setProgress(data.result))
+            .catch(() => setProgress(initialProgress))
+
+        const interval = setInterval(() => {
+            fetch(`${API_SERVER_URL}/api/v1/${site}/progress`)
+                .then((res) => res.json())
+                .then((data) => setProgress(data.result))
+                .catch(() => setProgress(initialProgress))
+        }, 3000)
+
+        // eslint-disable-next-line consistent-return
+        return () => clearInterval(interval)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [site])
 
     return (
         <div className="flex flex-col w-full h-screen pt-[10rem] gap-20">
@@ -112,15 +158,14 @@ const Home = () => {
                         <Select
                             variant="outlined"
                             label="Select Site"
-                            disabled={isScraping}
                             onChange={(value) => {
                                 setSite(value)
                             }}
                             value={site}
                         >
                             {sites.map((el, id) => (
-                                <Option key={`site-${id}`} value={el}>
-                                    {el}
+                                <Option key={`site-${id}`} value={el.value}>
+                                    {el.label}
                                 </Option>
                             ))}
                         </Select>
@@ -130,8 +175,16 @@ const Home = () => {
                             color="blue"
                             loading={isScraping}
                             onClick={handleStart}
+                            disabled={!site || isScraping}
                         >
                             Start
+                        </Button>
+                        <Button
+                            color="green"
+                            disabled={!isScraping}
+                            onClick={handlePause}
+                        >
+                            Pause
                         </Button>
                         <Button
                             color="red"
@@ -148,12 +201,14 @@ const Home = () => {
                             <Typography color="blue-gray" variant="h6">
                                 Brand
                             </Typography>
+                            <Typography color="blue-gray" variant="h6">
+                                {progress.brands.toFixed(2)}%
+                            </Typography>
                         </div>
                         <Progress
                             color="blue"
                             value={progress.brands}
                             variant="gradient"
-                            label="Completed"
                         />
                     </div>
                     <div>
@@ -162,18 +217,13 @@ const Home = () => {
                                 Metadata
                             </Typography>
                             <Typography color="blue-gray" variant="h6">
-                                {(
-                                    (totalCounts.metadata * progress.metadata) /
-                                    100
-                                ).toFixed(0)}
-                                /{totalCounts.metadata}
+                                {progress.metadata.toFixed(2)}%
                             </Typography>
                         </div>
                         <Progress
                             color="blue"
                             value={progress.metadata}
                             variant="gradient"
-                            label="Completed"
                         />
                     </div>
                     <div>
@@ -182,21 +232,25 @@ const Home = () => {
                                 Detail
                             </Typography>
                             <Typography color="blue-gray" variant="h6">
-                                {(
-                                    (totalCounts.detail * progress.detail) /
-                                    100
-                                ).toFixed(0)}
-                                /{totalCounts.detail}
+                                {progress.details.toFixed(2)}%
                             </Typography>
                         </div>
                         <Progress
                             color="blue"
-                            value={progress.detail}
+                            value={progress.details}
                             variant="gradient"
-                            label="Completed"
                         />
                     </div>
                 </div>
+                <Button
+                    disabled={!site}
+                    color="blue"
+                    className="flex items-center justify-center gap-3"
+                    onClick={handleDownload}
+                >
+                    <ArrowDownTrayIcon width={24} height={24} />
+                    Download CSV
+                </Button>
             </div>
         </div>
     )
