@@ -1,9 +1,1 @@
-export interface INavItem {
-    label: string
-    link: string
-}
-
-export interface ILogo {
-    label: string
-    link: string
-}
+export const API_SERVER_URL = import.meta.env.VITE_API_SERVER_URL

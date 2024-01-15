@@ -4443,6 +4443,13 @@ react-router@6.21.1:
   dependencies:
     "@remix-run/router" "1.14.1"
 
+react-toastify@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/react-toastify/-/react-toastify-10.0.0.tgz#6aa21af816256f31aa5282441cfb62d12eb1d3c2"
+  integrity sha512-nTKun8snjXcdmaYJIwgeXQ1IKkUBDkCt7O3K1y/XdrFh8o+MZwO1mY79cZ+qsXX92KFz6psUxHUZcLHCVkA/Sw==
+  dependencies:
+    clsx "^2.1.0"
+
 react@18.2.0, react@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
