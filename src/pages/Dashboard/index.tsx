@@ -43,6 +43,7 @@ const Home = () => {
         },
     ]
 
+    const [isDownloading, setIsDownloading] = useState(false)
     const [isScraping, setIsScraping] = useState(false)
     const initialProgress: IProgress = {
         brands: 0,
@@ -98,6 +99,7 @@ const Home = () => {
             })
     }
     const handleDownload = () => {
+        setIsDownloading(true)
         fetch(`${API_SERVER_URL}/api/v1/${site}/download`)
             .then((res) => res.blob())
             .then((blob) => {
@@ -109,6 +111,7 @@ const Home = () => {
                 link.click()
             })
             .catch(() => toast.error("Can't download file!"))
+            .finally(() => setIsDownloading(false))
     }
 
     useEffect(() => {
@@ -276,10 +279,11 @@ const Home = () => {
                     </div>
                 </div>
                 <Button
-                    disabled={!site}
+                    disabled={!site || isDownloading}
                     color="blue"
                     className="flex items-center justify-center gap-3"
                     onClick={handleDownload}
+                    loading={isDownloading}
                 >
                     <ArrowDownTrayIcon width={24} height={24} />
                     Download CSV
