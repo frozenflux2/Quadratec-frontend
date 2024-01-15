@@ -13,6 +13,7 @@ import { API_SERVER_URL } from '@/constants'
 
 interface IProgress {
     brands: number
+    categories?: number
     metadata: number
     details: number
 }
@@ -45,6 +46,7 @@ const Home = () => {
     const [isScraping, setIsScraping] = useState(false)
     const initialProgress: IProgress = {
         brands: 0,
+        categories: 0,
         metadata: 0,
         details: 0,
     }
@@ -211,6 +213,23 @@ const Home = () => {
                             variant="gradient"
                         />
                     </div>
+                    {site === 'quadratec' && (
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <Typography color="blue-gray" variant="h6">
+                                    Categories
+                                </Typography>
+                                <Typography color="blue-gray" variant="h6">
+                                    {progress?.categories?.toFixed(2)}%
+                                </Typography>
+                            </div>
+                            <Progress
+                                color="blue"
+                                value={progress?.categories}
+                                variant="gradient"
+                            />
+                        </div>
+                    )}
                     <div>
                         <div className="flex items-center justify-between mb-2">
                             <Typography color="blue-gray" variant="h6">
