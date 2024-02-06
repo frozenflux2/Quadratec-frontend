@@ -201,7 +201,7 @@ const Home = () => {
                             </Button>
                             <Button
                                 color="red"
-                                disabled={!isScraping}
+                                // disabled={!isScraping}
                                 onClick={handleStop}
                             >
                                 Stop
