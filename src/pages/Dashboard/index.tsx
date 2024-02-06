@@ -86,7 +86,7 @@ const Home = () => {
             })
     }
     const handleStop = () => {
-        fetch(`${API_SERVER_URL}/api/v1/utils/stop`)
+        fetch(`${API_SERVER_URL}/api/v1/${site}/stop`)
             .then((res) => res.json())
             .then((data) => {
                 setIsScraping(false)
@@ -201,10 +201,10 @@ const Home = () => {
                             </Button>
                             <Button
                                 color="red"
-                                // disabled={!isScraping}
+                                disabled={!site}
                                 onClick={handleStop}
                             >
-                                Stop
+                                Reset
                             </Button>
                         </div>
                     </div>
